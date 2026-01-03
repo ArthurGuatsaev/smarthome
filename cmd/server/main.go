@@ -7,9 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/ArthurGuatsaev/smarthome/internal/config"
 	"github.com/ArthurGuatsaev/smarthome/internal/httpapi"
+	storage "github.com/ArthurGuatsaev/smarthome/internal/starage"
 )
 
 func main() {
@@ -17,7 +19,24 @@ func main() {
 	setupLogger(cfg.LogLevel)
 
 	srv := httpapi.NewServer()
+	srv.SetReady(false)
 
+	db, err := storage.Open(context.Background(), cfg.DBPath)
+	if err != nil {
+		slog.Error("db_open_error", "err", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	migCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := storage.Migrate(migCtx, db.DB); err != nil {
+		slog.Error("db_migrate_error", "err", err)
+		os.Exit(1)
+	}
+
+	srv.SetReady(true)
 	httpServer := &http.Server{
 		Addr:         cfg.HTTPAddr,
 		Handler:      srv.Handler(),

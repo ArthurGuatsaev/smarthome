@@ -13,6 +13,8 @@ type Config struct {
 	ReadTimeout     time.Duration
 	WriteTimeout    time.Duration
 	IdleTimeout     time.Duration
+	//для базы данных
+	DBPath string
 }
 
 func Load() Config {
@@ -24,6 +26,7 @@ func Load() Config {
 		ReadTimeout:  getenvDuration("HTTP_READ_TIMEOUT", 5*time.Second),
 		WriteTimeout: getenvDuration("HTTP_WRITE_TIMEOUT", 10*time.Second),
 		IdleTimeout:  getenvDuration("HTTP_IDLE_TIMEOUT", 60*time.Second),
+		DBPath:       getenv("DB_PATH", "./data/smarthome.db"),
 	}
 }
 

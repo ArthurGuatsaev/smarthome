@@ -63,3 +63,7 @@ func (s *Server) handleVersion(w http.ResponseWriter, r *http.Request) {
 		"date":    buildinfo.Date,
 	})
 }
+
+func (s *Server) SetReady(v bool) {
+	s.ready.isReady = v
+}

@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/you/smarthome-server/internal/config"
-	"github.com/you/smarthome-server/internal/httpapi"
+	"github.com/ArthurGuatsaev/smarthome/internal/config"
+	"github.com/ArthurGuatsaev/smarthome/internal/httpapi"
 )
 
 func main() {

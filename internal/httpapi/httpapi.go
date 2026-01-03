@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/ArthurGuatsaev/smarthome-server/internal/buildinfo"
+	"github.com/ArthurGuatsaev/smarthome/internal/buildinfo"
 )
 
 type Server struct {

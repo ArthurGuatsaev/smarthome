@@ -98,3 +98,23 @@ func newReqID() string {
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
 }
+
+func RequireAPIKey(expected string) Middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Разрешим health/ready без ключа
+			if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			got := r.Header.Get("X-API-Key")
+			if expected != "" && got != expected {
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}

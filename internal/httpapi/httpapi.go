@@ -5,12 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ArthurGuatsaev/smarthome/internal/app"
 	"github.com/ArthurGuatsaev/smarthome/internal/buildinfo"
 )
 
 type Server struct {
-	mux   *http.ServeMux
-	ready *ReadyState
+	mux    *http.ServeMux
+	ready  *ReadyState
+	app    *app.App
+	apiKey string
 }
 
 type ReadyState struct {
@@ -18,15 +21,22 @@ type ReadyState struct {
 	isReady bool
 }
 
-func NewServer() *Server {
+func NewServer(a *app.App, apiKey string) *Server {
 	rs := &ReadyState{isReady: true}
-
 	mux := http.NewServeMux()
-	s := &Server{mux: mux, ready: rs}
 
+	s := &Server{mux: mux, ready: rs, app: a, apiKey: apiKey}
+
+	// system
 	mux.HandleFunc("GET /healthz", s.handleHealthz)
 	mux.HandleFunc("GET /readyz", s.handleReadyz)
 	mux.HandleFunc("GET /api/v1/version", s.handleVersion)
+
+	// devices
+	mux.HandleFunc("GET /api/v1/devices", s.handleDevicesList)
+	mux.HandleFunc("POST /api/v1/devices", s.handleDevicesCreate)
+	mux.HandleFunc("GET /api/v1/devices/{id}", s.handleDevicesGet)
+	mux.HandleFunc("DELETE /api/v1/devices/{id}", s.handleDevicesDelete)
 
 	return s
 }
@@ -38,6 +48,7 @@ func (s *Server) Handler() http.Handler {
 		AccessLog(),
 		Recoverer(),
 		Timeout(8*time.Second),
+		RequireAPIKey(s.apiKey),
 	)
 }
 

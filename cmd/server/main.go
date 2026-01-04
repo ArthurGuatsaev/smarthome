@@ -9,17 +9,15 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ArthurGuatsaev/smarthome/internal/app"
 	"github.com/ArthurGuatsaev/smarthome/internal/config"
 	"github.com/ArthurGuatsaev/smarthome/internal/httpapi"
-	storage "github.com/ArthurGuatsaev/smarthome/internal/starage"
+	"github.com/ArthurGuatsaev/smarthome/internal/storage"
 )
 
 func main() {
 	cfg := config.Load()
 	setupLogger(cfg.LogLevel)
-
-	srv := httpapi.NewServer()
-	srv.SetReady(false)
 
 	db, err := storage.Open(context.Background(), cfg.DBPath)
 	if err != nil {
@@ -36,7 +34,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv.SetReady(true)
+	application := app.New(db)
+	srv := httpapi.NewServer(application, cfg.APIKey)
 	httpServer := &http.Server{
 		Addr:         cfg.HTTPAddr,
 		Handler:      srv.Handler(),
